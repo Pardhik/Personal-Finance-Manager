@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Finance Manager</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+</head>
+<body>
+    <nav class="navbar is-primary" role="navigation" aria-label="main navigation">
+        <div class="navbar-brand">
+            <a class="navbar-item" href="#">
+                <h1>Personal Finance Manager</h1>
+            </a>
+        </div>
+        <div class="navbar-menu is-active">
+            <div class="navbar-start">
+                <a class="navbar-item" href="#expenses">Expenses</a>
+                <a class="navbar-item" href="#add-expense">Add Expense</a>
+            </div>
+            <div class="navbar-end">
+                <div class="navbar-item">
+                    <button class="button is-light" id="login-button">Login</button>
+                    <button class="button is-light" id="signup-button">Signup</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="container" id="expenses">
+        <h2 class="title">Expenses</h2>
+        <table class="table is-fullwidth">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Amount</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="expenses-table-body">
+            </tbody>
+        </table>
+    </div>
+    <div class="container" id="add-expense">
+        <h2 class="title">Add Expense</h2>
+        <form id="add-expense-form">
+            <div class="field">
+                <label class="label">Date</label>
+                <div class="control">
+                    <input class="input" type="date" id="date" required>
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">Category</label>
+                <div class="control">
+                    <input class="input" type="text" id="category" required>
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">Description</label>
+                <div class="control">
+                    <input class="input" type="text" id="description" required>
+                </div>
+            </div>
+            <div class="field">
+                <label class="label">Amount</label>
+                <div class="control">
+                    <input class="input" type="number" id="amount" required>
+                </div>
+            </div>
+            <div class="field">
+                <div class="control">
+                    <button class="button is-primary" type="submit">Add Expense</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal" id="login-modal">
+        <div class="modal-background"></div>
+        <div class="modal-card">
+            <header class="modal-card-head">
+                <p class="modal-card-title">Login</p>
+                <button class="delete" aria-label="close" id="close-login-modal"></button>
+            </header>
+            <section class="modal-card-body">
+                <form id="login-form">
+                    <div class="field">
+                        <label class="label">Username</label>
+                        <div class="control">
+                            <input class="input" type="text" id="username" required>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label class="label">Password</label>
+                        <div class="control">
+                            <input class="input" type="password" id="password" required>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <div class="control">
+                            <button class="button is-primary" type="submit">Login</button>
+                        </div>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </div>
+    <script>
+        let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+        const addExpenseForm = document.getElementById('add-expense-form');
+        const expensesTableBody = document.getElementById('expenses-table-body');
+        const loginButton = document.getElementById('login-button');
+        const loginModal = document.getElementById('login-modal');
+        const signupButton = document.getElementById('signup-button');
+        const closeLoginModal = document.getElementById('close-login-modal');
+        const loginForm = document.getElementById('login-form');
+        
+        
+
+        addExpenseForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const date = document.getElementById('date').value;
+            const category = document.getElementById('category').value;
+            const description = document.getElementById('description').value;
+            const amount = document.getElementById('amount').value;
+            expenses.push({ date, category, description, amount });
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+            renderExpenses();
+            addExpenseForm.reset();
+        });
+
+        loginButton.addEventListener('click', () => {
+            loginModal.classList.add('is-active');
+        });
+
+        closeLoginModal.addEventListener('click', () => {
+            loginModal.classList.remove('is-active');
+        });
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            if (username === 'admin' && password === 'password') {
+                loginModal.classList.remove('is-active');
+                loginButton.textContent = 'Logout';
+            }
+        });
+
+        function renderExpenses() {
+            expensesTableBody.innerHTML = '';
+            expenses.forEach((expense, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${expense.date}</td>
+                    <td>${expense.category}</td>
+                    <td>${expense.description}</td>
+                    <td>${expense.amount}</td>
+                    <td>
+                        <button class="button is-small is-warning" onclick="editExpense(${index})">Edit</button>
+                        <button class="button is-small is-danger" onclick="deleteExpense(${index})">Delete</button>
+                    </td>
+                `;
+                expensesTableBody.appendChild(row);
+            });
+        }
+
+        function editExpense(index) {
+            const expense = expenses[index];
+            document.getElementById('date').value = expense.date;
+            document.getElementById('category').value = expense.category;
+            document.getElementById('description').value = expense.description;
+            document.getElementById('amount').value = expense.amount;
+            expenses.splice(index, 1);
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+            renderExpenses();
+        }
+
+        function deleteExpense(index) {
+            expenses.splice(index, 1);
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+            renderExpenses();
+        }
+
+        renderExpenses();
+    </script>
+</body>
+</html>
